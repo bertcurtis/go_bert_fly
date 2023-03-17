@@ -1,9 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
+	"github.com/bertcurtis/go_bert_fly/internal"
+)
 
-func main(){
-	fmt.Println("nutz")
+func main() {
+	me := internal.GetFlightList("deez")
+	fmt.Printf("%s nutz\n", me)
+
 }
-
