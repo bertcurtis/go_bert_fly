@@ -56,6 +56,34 @@ func TestFindNextDestination(t *testing.T) {
 	//assert.Equal(t, flightOutput.Result, "")
 }
 
+func TestFindOrderedFlightPath(t *testing.T) {
+	// this tells go that this test can run in Parallel
+	// with other t.parallel enabled unit tests
+	t.Parallel()
+	assert := assert.New(t)
+
+	sample := `[["ATL","JFK"],["PHX","ATL"],["SLC","PHX"], ["SFO","SLC"]]`
+	fi := models.FlightsInput{}
+
+	err := json.Unmarshal([]byte(sample), &fi)
+	// ensure no Unmarshal error
+	assert.Nil(err)
+
+	// arrL, depL, err := fi.ValidateLengths()
+	// assert.Nil(err)
+	// assert.Equal(4, arrL)
+	// assert.Equal(4, depL)
+
+	orderedFlights, err := fi.SolveAll()
+	assert.Nil(err)
+	assert.Equal([]string{"SFO", "SLC"}, orderedFlights[0])
+	assert.Equal([]string{"SLC", "PHX"}, orderedFlights[1])
+	assert.Equal([]string{"PHX", "ATL"}, orderedFlights[1])
+	assert.Equal([]string{"ATL", "JFK"}, orderedFlights[3])
+
+	//assert.Equal(t, flightOutput.Result, "")
+}
+
 // func TestModelsSolve(t *testing.T) {
 // 	// this tells go that this test can run in Parallel
 // 	// with other t.parallel enabled unit tests

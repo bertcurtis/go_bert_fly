@@ -12,18 +12,31 @@ type FlightOutput struct {
 //		return initial
 //	}
 func (fi FlightsInput) SolveInitial() []string {
-	initial := findDeparturePair(fi)
-
+	initial := findInitialDeparturePair(fi)
 	return initial
 }
 
 func (fi FlightsInput) SolveNext() []string {
-	initial := findDeparturePair(fi)
+	initial := findInitialDeparturePair(fi)
 	next := findNextDestinationPair(fi, initial)
 	return next
 }
 
-func findDeparturePair(fi FlightsInput) (returnPair []string) {
+func (fi FlightsInput) SolveAll() (orderedFlights [][]string, err error) {
+	initial := findInitialDeparturePair(fi)
+	if initial != nil {
+		orderedFlights = append(orderedFlights, initial)
+	}
+	for i := 0; i < len(fi)-1; i++ {
+		orderedFlights = append(orderedFlights, findNextDestinationPair(fi, orderedFlights[len(orderedFlights)-1]))
+	}
+	if len(orderedFlights) < len(fi) {
+		err = fmt.Errorf("ordered list not ordered correctly")
+	}
+	return orderedFlights, err
+}
+
+func findInitialDeparturePair(fi FlightsInput) (returnPair []string) {
 	fmt.Println("Length of flights input: ", len(fi))
 	for _, flightPair := range fi {
 		isDeparture := true
