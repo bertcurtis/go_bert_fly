@@ -78,7 +78,7 @@ func TestFindOrderedFlightPath(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal([]string{"SFO", "SLC"}, orderedFlights[0])
 	assert.Equal([]string{"SLC", "PHX"}, orderedFlights[1])
-	assert.Equal([]string{"PHX", "ATL"}, orderedFlights[1])
+	assert.Equal([]string{"PHX", "ATL"}, orderedFlights[2])
 	assert.Equal([]string{"ATL", "JFK"}, orderedFlights[3])
 
 	//assert.Equal(t, flightOutput.Result, "")
