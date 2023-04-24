@@ -21,39 +21,8 @@ func TestFindInitialDeparture(t *testing.T) {
 	// ensure no Unmarshal error
 	assert.Nil(err)
 
-	// arrL, depL, err := fi.ValidateLengths()
-	// assert.Nil(err)
-	// assert.Equal(4, arrL)
-	// assert.Equal(4, depL)
-
 	initial := fi.SolveInitial()
 	assert.Equal([]string{"SFO", "SLC"}, initial)
-
-	//assert.Equal(t, flightOutput.Result, "")
-}
-
-func TestFindNextDestination(t *testing.T) {
-	// this tells go that this test can run in Parallel
-	// with other t.parallel enabled unit tests
-	t.Parallel()
-	assert := assert.New(t)
-
-	sample := `[["ATL","JFK"],["PHX","ATL"],["SLC","PHX"], ["SFO","SLC"]]`
-	fi := models.FlightsInput{}
-
-	err := json.Unmarshal([]byte(sample), &fi)
-	// ensure no Unmarshal error
-	assert.Nil(err)
-
-	// arrL, depL, err := fi.ValidateLengths()
-	// assert.Nil(err)
-	// assert.Equal(4, arrL)
-	// assert.Equal(4, depL)
-
-	initial := fi.SolveNext()
-	assert.Equal([]string{"SLC", "PHX"}, initial)
-
-	//assert.Equal(t, flightOutput.Result, "")
 }
 
 func TestFindOrderedFlightPath(t *testing.T) {
@@ -69,36 +38,28 @@ func TestFindOrderedFlightPath(t *testing.T) {
 	// ensure no Unmarshal error
 	assert.Nil(err)
 
-	// arrL, depL, err := fi.ValidateLengths()
-	// assert.Nil(err)
-	// assert.Equal(4, arrL)
-	// assert.Equal(4, depL)
+	flightOutput := fi.SolveAll()
+	assert.Equal(flightOutput.ErrorInformation, "")
+	assert.Equal([]string{"SFO", "SLC"}, flightOutput.OrderedPath[0])
+	assert.Equal([]string{"SLC", "PHX"}, flightOutput.OrderedPath[1])
+	assert.Equal([]string{"PHX", "ATL"}, flightOutput.OrderedPath[2])
+	assert.Equal([]string{"ATL", "JFK"}, flightOutput.OrderedPath[3])
 
-	orderedFlights, err := fi.SolveAll()
-	assert.Nil(err)
-	assert.Equal([]string{"SFO", "SLC"}, orderedFlights[0])
-	assert.Equal([]string{"SLC", "PHX"}, orderedFlights[1])
-	assert.Equal([]string{"PHX", "ATL"}, orderedFlights[2])
-	assert.Equal([]string{"ATL", "JFK"}, orderedFlights[3])
-
-	//assert.Equal(t, flightOutput.Result, "")
 }
 
-// func TestModelsSolve(t *testing.T) {
-// 	// this tells go that this test can run in Parallel
-// 	// with other t.parallel enabled unit tests
-// 	t.Parallel()
+func TestFaultyInputs(t *testing.T) {
+	// this tells go that this test can run in Parallel
+	// with other t.parallel enabled unit tests
+	t.Parallel()
+	assert := assert.New(t)
 
-// 	sample := `[["SFO","SLC"],["ATL","JFK"],["PHX","ATL"],["SLC","PHX"]]`
-// 	fi := models.FlightsInput{}
+	sample := `[["ATL","ATL"],["ATL","ATL"],["ATL","ATL"], ["ATL","ATL"]]`
+	fi := models.FlightsInput{}
 
-// 	err := json.Unmarshal([]byte(sample), &fi)
-// 	// ensure no Unmarshal error
-// 	assert.Nil(t, err)
+	err := json.Unmarshal([]byte(sample), &fi)
+	// ensure no Unmarshal error
+	assert.Nil(err)
 
-// 	flightOutput, err := fi.Solve()
-// 	// should be no errors
-// 	assert.Nil(t, err)
-
-// 	assert.Equal(t, flightOutput.Result, "")
-// }
+	initial := fi.SolveInitial()
+	assert.Equal([]string{"SFO", "SLC"}, initial)
+}

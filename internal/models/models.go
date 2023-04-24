@@ -4,68 +4,86 @@ import "fmt"
 
 type FlightsInput [][]string
 type FlightOutput struct {
-	Result string
+	InitialDeparturePair  []string
+	FinalDepartureAirport string
+	FinalArrivalAirport   string
+	OrderedPath           [][]string
+	ErrorInformation      string
 }
 
-//	func (fi FlightsInput) Solve() (fo FlightOutput, err error) {
-//		initial := findInitialDeparture(fi)
-//		return initial
-//	}
-func (fi FlightsInput) SolveInitial() []string {
-	initial := findInitialDeparturePair(fi)
-	return initial
+// add handling for faulty inputs (duplicate entries, multiple destination and arrivals with mismatched pairs)
+func (fi FlightsInput) SolveInitial() (fo FlightOutput) {
+	initial, err := findInitialDeparturePair(fi)
+	if err != nil {
+		fo.ErrorInformation = err.Error()
+		return fo
+	}
+	fo.InitialDeparturePair = initial
+	return fo
 }
 
-func (fi FlightsInput) SolveNext() []string {
-	initial := findInitialDeparturePair(fi)
-	next := findNextDestinationPair(fi, initial)
-	return next
-}
-
-func (fi FlightsInput) SolveAll() (orderedFlights [][]string, err error) {
-	initial := findInitialDeparturePair(fi)
-	if initial != nil {
-		orderedFlights = append(orderedFlights, initial)
+func (fi FlightsInput) SolveAll() (fo FlightOutput) {
+	initial, err := findInitialDeparturePair(fi)
+	if err != nil {
+		fo.ErrorInformation = err.Error()
+		return fo
+	}
+	if len(fo.OrderedPath) < 1 {
+		fo.OrderedPath = append(fo.OrderedPath, initial)
 	}
 	for i := 0; i < len(fi)-1; i++ {
-		orderedFlights = append(orderedFlights, findNextDestinationPair(fi, orderedFlights[len(orderedFlights)-1]))
+		nextDestination, err := findNextDestinationPair(fi, fo.OrderedPath[len(fo.OrderedPath)-1])
+		if err != nil {
+			fo.ErrorInformation = err.Error()
+			return fo
+		}
+		fo.OrderedPath = append(fo.OrderedPath, nextDestination)
+
 	}
-	if len(orderedFlights) < len(fi) {
-		err = fmt.Errorf("ordered list not ordered correctly")
+	if len(fo.OrderedPath) < len(fi) {
+		err = fmt.Errorf("there are less flights in the ordered list than the inputs. This should be the same")
+		fo.ErrorInformation = err.Error()
+
 	}
-	return orderedFlights, err
+	return fo
 }
 
-func findInitialDeparturePair(fi FlightsInput) (returnPair []string) {
-	fmt.Println("Length of flights input: ", len(fi))
+func findInitialDeparturePair(fi FlightsInput) (returnPair []string, err error) {
+	// This will evaluate a set of flight paths and return a pair where the first item in the pair
+	// does not have a match with any of the other items at the second ordinal position in the list of pairs
 	for _, flightPair := range fi {
 		isDeparture := true
-		fmt.Println("Input pair under iteration: ", flightPair)
-		fmt.Println("Is this departure in: ", flightPair[0])
+		if len(flightPair) != 2 {
+			return flightPair, fmt.Errorf("item %v does not have exactly 2 airports", flightPair)
+		}
+
 		for i := 0; i < len(fi); i++ {
-			fmt.Println("arrval: ", fi[i][1])
 			if flightPair[0] == fi[i][1] {
 				isDeparture = false
 				break
 			}
 		}
 		if isDeparture {
-			fmt.Println("found:", flightPair)
 			returnPair = flightPair
 			break
 		}
 	}
-	return returnPair
+	if len(returnPair) < 1 {
+		return returnPair, fmt.Errorf("none of the flight pairs entered matched the criteria for an initial departure flight")
+	}
+	return returnPair, nil
 }
 
-func findNextDestinationPair(fi FlightsInput, flightPair []string) (returnPair []string) {
+func findNextDestinationPair(fi FlightsInput, flightPair []string) (returnPair []string, err error) {
 	for _, flightInputPair := range fi {
 		if flightInputPair[0] == flightPair[1] {
 			returnPair = flightInputPair
-			break
 		}
 	}
-	return returnPair
+	if len(returnPair) != 2 {
+		return returnPair, fmt.Errorf("%v found when searching for next flight when there should be one pair", returnPair)
+	}
+	return returnPair, nil
 }
 
 // func (fi FlightsInput) ValidateLengths() (arrivalsLength int, departuresLength int, err error) {
